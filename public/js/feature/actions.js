@@ -1,7 +1,10 @@
 var Reflux = require('reflux')
 
 var Actions = Reflux.createActions([
-  'fetchData'
+  'fetchData',
+  'sortData',
+  'ongoingSelection',
+  'returnSelection'
 ])
 
 module.exports = Actions

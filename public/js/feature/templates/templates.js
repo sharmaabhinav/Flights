@@ -1,7 +1,7 @@
 var Handlebars = require('handlebars')
 var templates = {
 
-  flight: Handlebars.compile(require('./flight'))
+  flights: Handlebars.compile(require('./flights'))
 }
 
 module.exports = templates

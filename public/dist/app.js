@@ -42019,27 +42019,164 @@ module.exports = function(listenables){
 var Reflux = require('reflux')
 
 var Actions = Reflux.createActions([
-  'fetchData'
+  'fetchData',
+  'sortData',
+  'ongoingSelection',
+  'returnSelection'
 ])
 
 module.exports = Actions
 },{"reflux":101}],105:[function(require,module,exports){
+var formatters = {
+  durationFormater : function (val) {
+    var hours = Math.floor(val / 60)
+    var min = val % 60
+    return hours + "h :" + min + "m"
+  },
+  costFormatter: function (val) {
+    var formatedVal
+    try {
+      formatedVal = val.toLocaleString('hi-IN')
+    } catch (e) {
+      formatedVal = val
+    }
+    return formatedVal
+  },
+  timeFormatter: function (val) {
+    var hours = Math.floor(val / 60)
+    var min = val % 60
+    return hours + ":" + min
+  }
+}
+
+module.exports = formatters
+},{}],106:[function(require,module,exports){
 var $ = require('jquery')
 var _ = require('lodash')
 var actions = require('./actions')
 var store = require('./store')
 var Handlebars = require('handlebars')
 var templates = require('./templates/templates')
+var formatters = require('./formatter')
 
 
 var handler = (function () {
+  var ongoingFlightContainer
+  var returnFlightContainer
+  var ongoingSortLinks
+  var returnSortLinks
+  var totalPriceSection
+  var ongoingFare = 0
+  var returnFare = 0
+  var ongoingFlightLinks
+  var returnFlightLinks
 
+  var handlerListeners = {
+    'fetchDataSuccess': displayFlights,
+    'sortOngoing': displayOngoingFlights,
+    'sortReturn': displayReturnFlights
+  }
 
   function init () {
     actions.fetchData()
-    console.log(templates.flight({ airLineName: 'indigo1' }))
+    setupStoreListener()
+    setupDomElements()
+    setupUIListeners()
   }
 
+  function setupDomElements () {
+    ongoingFlightContainer = $('#trip1-list')
+    returnFlightContainer = $('#trip2-list')
+    ongoingSortLinks = $('.sort-trip1')
+    returnSortLinks = $('.sort-trip2')
+    totalPriceSection = $('#totalfare')
+  }
+
+
+  function setupStoreListener() {
+    store.listen (function (data) {
+      if (data.type) {
+        handlerListeners[data.type](data.data)
+      }
+    })
+  }
+
+  function setupUIListeners () {
+    ongoingSortLinks.on('click', {type: 'sortOngoing', links: ongoingSortLinks} , handleSort)
+    returnSortLinks.on('click', {type: 'sortReturn', links: returnSortLinks} , handleSort)
+    ongoingFlightContainer.on('click', 'li', {type: 'ongoing'}, handleFlightSelection)
+    returnFlightContainer.on('click', 'li', {type: 'return'}, handleFlightSelection)
+  }
+
+  function handleSort (event) {
+    var params = event.data
+    params.links.removeClass('selected')
+
+    var elem = $(this)
+    elem.addClass('selected')
+
+    var sortBy = elem.data('sort')
+    actions.sortData(sortBy, params.type)
+  }
+
+  function handleFlightSelection (event) {
+    var params = event.data
+    var elem = $(this)
+    if (params.type === 'ongoing') {
+      ongoingFlightLinks.removeClass('selected')
+      ongoingFare = elem.data('cost')
+      actions.ongoingSelection(elem.data('name'))
+    } else {
+      returnFlightLinks.removeClass('selected')
+      actions.returnSelection(elem.data('name'))
+      returnFare = elem.data('cost')
+    }
+    elem.addClass('selected')
+    updateTotalPrice(ongoingFare, returnFare)
+  }
+
+  function updateTotalPrice (ongoingFare, returnFare) {
+    var displayFare = formatters.costFormatter(ongoingFare + returnFare)
+    $('#totalfare').html(displayFare)
+  }
+
+  function displayFlights (data) {
+    displayOngoingFlights(data.ongoing)
+    displayReturnFlights(data.return)
+  }
+
+  function displayOngoingFlights (data) {
+    var flights = getFlightsDisplayDetails(data)
+    var html = templates.flights({ flights: flights })
+    ongoingFlightContainer.html(html)
+    ongoingFlightLinks = ongoingFlightContainer.find('li')
+  }
+
+  function displayReturnFlights (data) {
+    var flights = getFlightsDisplayDetails(data)
+    var html = templates.flights({ flights: flights })
+    returnFlightContainer.html(html)
+    returnFlightLinks = returnFlightContainer.find('li')
+  }
+
+  function getFlightsDisplayDetails (data) {
+    return _.map(data, function (flightInfo) {
+      return getFlightDisplayDetails(flightInfo)
+    })
+  }
+
+
+  function getFlightDisplayDetails (flightInfo) {
+    return {
+      airLineName: flightInfo.airLineName,
+      flightName: flightInfo.flightName,
+      duration: formatters.durationFormater(flightInfo.endTimeInMin - flightInfo.startTimeInMin),
+      displayCost: formatters.costFormatter(flightInfo.cost),
+      cost: flightInfo.cost,
+      startTime: formatters.timeFormatter(flightInfo.startTimeInMin),
+      endTime: formatters.timeFormatter(flightInfo.endTimeInMin)
+    }
+  }
 
   return {
     init: init
@@ -42047,26 +42184,50 @@ var handler = (function () {
 
 })()
 module.exports = handler
-},{"./actions":104,"./store":106,"./templates/templates":108,"handlebars":38,"jquery":50,"lodash":51}],106:[function(require,module,exports){
+},{"./actions":104,"./formatter":105,"./store":107,"./templates/templates":109,"handlebars":38,"jquery":50,"lodash":51}],107:[function(require,module,exports){
 var Reflux = require('reflux')
 var $ = require('jquery')
-var lodash = require('lodash')
+var _ = require('lodash')
 var actions = require('./actions')
 
 var Store = Reflux.createStore({
   init: function () {
     this.listenToMany(actions)
+    this.data = {ongoing: [], return: []}
+    this.ongoingSelection = ''
+    this.returnSelection = ''
   },
+
+  onOngoingSelection: function (selection) {
+    this.ongoingSelection = selection
+  },
+
+  onReturnSelection: function (selection) {
+    this.returnSelection = selection
+  },
+
+  setData: function (data) {
+    this.data = data
+  },
+
   onFetchData: function (){
     $.getJSON('data.json').done(function (data) {
-      console.log(data)
-    })
+      this.setData(data)
+      this.trigger({ data: data, type: 'fetchDataSuccess'})
+    }.bind(this))
+  },
+
+  onSortData: function (field, type) {
+    var data = type === 'sortOngoing' ? this.data['ongoing'] : this.data['return']
+
+    var sortedData = _.sortBy(data, field)
+    this.trigger({ data: sortedData, type: type})
   }
 })
 
 module.exports = Store
-},{"./actions":104,"jquery":50,"lodash":51,"reflux":101}],107:[function(require,module,exports){
-var template = '<li> \
+},{"./actions":104,"jquery":50,"lodash":51,"reflux":101}],108:[function(require,module,exports){
+var template = '{{#each flights }}<li data-cost="{{cost}}"" data-name = "{{flightName}}"> \
   <div class="flight-icons {{airLineName}}"> \
   </div> \
   <div class="flight-details"> \
@@ -42074,22 +42235,23 @@ var template = '<li> \
       <div class="name">{{flightName}}</div>\
       <div class="duration">{{duration}}</div>\
   </div>\
-  <div class="trip-fare">Rs. {{cost}}</div>\
-</li>'
+  <div class="trip-fare">Rs. {{displayCost}}</div>\
+  <div class="cb"><span class="cbid">0</span></div>\
+</li>{{/each}}'
 
 module.exports = template
-},{}],108:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 var Handlebars = require('handlebars')
 var templates = {
 
-  flight: Handlebars.compile(require('./flight'))
+  flights: Handlebars.compile(require('./flights'))
 }
 
 module.exports = templates
-},{"./flight":107,"handlebars":38}],109:[function(require,module,exports){
+},{"./flights":108,"handlebars":38}],110:[function(require,module,exports){
 var handler = require('./feature/handler')
 var $ = require('jquery')
 $(document).ready(function(){
   handler.init()
 })
-},{"./feature/handler":105,"jquery":50}]},{},[109]);
+},{"./feature/handler":106,"jquery":50}]},{},[110]);

@@ -1,10 +1,102 @@
-var arr = [
-  {
-    "name": "abc",
-    "age": 12
-  },
-  {
-    "name": "abc1",
-    "age": 122
-  }
-]
+{
+  "ongoing": [{
+      "airLineName": "air",
+      "airline_codes": "AI",
+      "startTimeInMin": 570,
+      "endTimeInMin": 690,
+      "flightName": "Air E6-184",
+      "cost": 3400
+    },
+    {
+      "airLineName": "kf",
+      "airline_codes": "IT",
+      "startTimeInMin": 630,
+      "endTimeInMin": 690,
+      "flightName": "KF E6-185",
+      "cost": 3712
+    },
+
+    {
+      "airLineName": "indigo",
+      "startTimeInMin": 560,
+      "endTimeInMin": 690,
+      "airline_codes": "6E",
+      "flightName": "Indigo E6-188",
+      "cost": 5600
+    },
+    {
+      "airLineName": "go",
+      "startTimeInMin": 765,
+      "airline_codes": "G8",
+      "endTimeInMin": 825,
+      "flightName": "Go E6-189",
+      "cost": 3200
+    },
+    {
+      "airLineName": "air",
+      "startTimeInMin": 870,
+      "airline_codes": "AI",
+      "endTimeInMin": 990,
+      "flightName": "Air E6-180",
+      "cost": 2500
+    },
+    {
+      "airLineName": "air",
+      "startTimeInMin": 1050,
+      "airline_codes": "AI",
+      "endTimeInMin": 1120,
+      "flightName": "Air E6-189",
+      "cost": 4000
+    }
+
+  ],
+  "return": [{
+      "airLineName": "air",
+      "airline_codes": "AI",
+      "startTimeInMin": 570,
+      "endTimeInMin": 690,
+      "flightName": "Air E6-184",
+      "cost": 3400
+    },
+    {
+      "airLineName": "kf",
+      "startTimeInMin": 630,
+      "airline_codes": "IT",
+      "endTimeInMin": 690,
+      "flightName": "KF E6-185",
+      "cost": 3712
+    },
+
+    {
+      "airLineName": "indigo",
+      "startTimeInMin": 560,
+      "endTimeInMin": 690,
+      "airline_codes": "6E",
+      "flightName": "Indigo E6-188",
+      "cost": 5600
+    },
+    {
+      "airLineName": "go",
+      "startTimeInMin": 765,
+      "endTimeInMin": 825,
+      "flightName": "Go E6-189",
+      "airline_codes": "G8",
+      "cost": 3200
+    },
+    {
+      "airLineName": "air",
+      "startTimeInMin": 870,
+      "endTimeInMin": 990,
+      "flightName": "Air E6-180",
+      "cost": 2500,
+      "airLineName": "air"
+    },
+    {
+      "airLineName": "air",
+      "startTimeInMin": 1050,
+      "endTimeInMin": 1120,
+      "flightName": "Air E6-189",
+      "cost": 4000,
+      "airLineName": "air"
+    }]
+}
