@@ -53,13 +53,13 @@ var Store = Reflux.createStore({
     var ongoingFlights = filterUtility.filter(this.data.ongoing, filters)
     var returnFlights = filterUtility.filter(this.data.return, filters)
     this.trigger(
-        {
-          data: {
-            ongoing: ongoingFlights,
-            return: returnFlights
-          },
-          type: 'fetchDataSuccess'
-        }
+      {
+        data: {
+          ongoing: ongoingFlights,
+          return: returnFlights
+        },
+        type: 'fetchDataSuccess'
+      }
     )
   }
 })

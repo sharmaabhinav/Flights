@@ -73,7 +73,7 @@ var handler = (function () {
   function handleFilterApply () {
     filterSection.addClass('hide')
     displaySection.removeClass('hide')
-    var appliedFilters = filters.getFilters(filterSection)
+    var appliedFilters = filters.get(filterSection)
     actions.filterData(appliedFilters)
   }
 
@@ -105,7 +105,7 @@ var handler = (function () {
   }
 
   function updateTotalPrice (ongoingFare, returnFare) {
-    var displayFare = formatters.costFormatter(ongoingFare + returnFare)
+    var displayFare = formatters.cost(ongoingFare + returnFare)
     $('#totalfare').html(displayFare)
   }
 
@@ -115,7 +115,7 @@ var handler = (function () {
   }
 
   function displayFilters (data) {
-    filters.displayFilters(data, templates.filters, filterSection)
+    filters.display(data, templates.filters, filterSection)
   }
 
   function displayOngoingFlights (data) {
@@ -143,11 +143,11 @@ var handler = (function () {
     return {
       airLineName: flightInfo.airLineName,
       flightName: flightInfo.flightName,
-      duration: formatters.durationFormater(flightInfo.endTimeInMin - flightInfo.startTimeInMin),
-      displayCost: formatters.costFormatter(flightInfo.cost),
+      duration: formatters.duration(flightInfo.endTimeInMin - flightInfo.startTimeInMin),
+      displayCost: formatters.cost(flightInfo.cost),
       cost: flightInfo.cost,
-      startTime: formatters.timeFormatter(flightInfo.startTimeInMin),
-      endTime: formatters.timeFormatter(flightInfo.endTimeInMin)
+      startTime: formatters.time(flightInfo.startTimeInMin),
+      endTime: formatters.time(flightInfo.endTimeInMin)
     }
   }
 

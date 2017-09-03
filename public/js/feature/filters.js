@@ -3,12 +3,12 @@ var _ = require('lodash')
 
 var filterUtility = {
 
-  displayFilters: function (data, template, mountNode) {
+  display: function (data, template, mountNode) {
     var html = template({ filters: data })
     mountNode.html(html)
   },
 
-  getFilters: function (mountNode) {
+  get: function (mountNode) {
     var appliedValues = {}
     mountNode.find('input.filterInput').each(function (index, element) {
       element = $(element)

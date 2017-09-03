@@ -1,10 +1,10 @@
 var formatters = {
-  durationFormater : function (val) {
+  duration : function (val) {
     var hours = Math.floor(val / 60)
     var min = val % 60
     return hours + "h :" + min + "m"
   },
-  costFormatter: function (val) {
+  cost: function (val) {
     var formatedVal
     try {
       formatedVal = val.toLocaleString('hi-IN')
@@ -13,7 +13,7 @@ var formatters = {
     }
     return formatedVal
   },
-  timeFormatter: function (val) {
+  time: function (val) {
     var hours = Math.floor(val / 60)
     var min = val % 60
     return hours + ":" + min
