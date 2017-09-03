@@ -89,7 +89,8 @@
       "endTimeInMin": 990,
       "flightName": "Air E6-180",
       "cost": 2500,
-      "airLineName": "air"
+      "airline_codes": "AI"
+
     },
     {
       "airLineName": "air",
@@ -97,6 +98,34 @@
       "endTimeInMin": 1120,
       "flightName": "Air E6-189",
       "cost": 4000,
-      "airLineName": "air"
-    }]
+      "airline_codes": "AI"
+    }],
+
+  "filters": [
+    {
+
+      "displayName": "Preferred Airlines",
+      "name": "airline_codes",
+      "values": [
+        {
+          "displayName": "Air India",
+          "value": "AI"
+        },
+        {
+          "displayName": "Indigo",
+          "value": "6E"
+        },
+        {
+          "displayName": "Go Air",
+          "value": "G8"
+        },
+        {
+          "displayName": "Kingfisher",
+          "value": "IT"
+        }
+      ]
+    }
+
+  ]
+
 }

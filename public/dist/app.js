@@ -42022,11 +42022,53 @@ var Actions = Reflux.createActions([
   'fetchData',
   'sortData',
   'ongoingSelection',
-  'returnSelection'
+  'returnSelection',
+  'filterData'
 ])
 
 module.exports = Actions
 },{"reflux":101}],105:[function(require,module,exports){
+var $ = require('jquery')
+var _ = require('lodash')
+
+var filterUtility = {
+
+  displayFilters: function (data, template, mountNode) {
+    var html = template({ filters: data })
+    mountNode.html(html)
+  },
+
+  getFilters: function (mountNode) {
+    var appliedValues = {}
+    mountNode.find('input.filterInput').each(function (index, element) {
+      element = $(element)
+      var name = element.attr('name')
+      var isSelected = element.is(':checked')
+
+      if (!appliedValues[name] && isSelected) {
+        appliedValues[name] = []
+      }
+
+      isSelected && appliedValues[name].push(element.val())
+    })
+    return appliedValues
+  },
+
+  filter: function (data, filters) {
+    return _.filter(data, function (dataValue) {
+      var include = true
+      _.forEach(filters, function (filterValue, filterType) {
+        if (_.includes(filterValue, dataValue[filterType]) === false) {
+          include = false
+        }
+      })
+      return include
+    })
+  }
+}
+
+module.exports = filterUtility
+},{"jquery":50,"lodash":51}],106:[function(require,module,exports){
 var formatters = {
   durationFormater : function (val) {
     var hours = Math.floor(val / 60)
@@ -42050,7 +42092,7 @@ var formatters = {
 }
 
 module.exports = formatters
-},{}],106:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 var $ = require('jquery')
 var _ = require('lodash')
 var actions = require('./actions')
@@ -42058,6 +42100,7 @@ var store = require('./store')
 var Handlebars = require('handlebars')
 var templates = require('./templates/templates')
 var formatters = require('./formatter')
+var filters = require('./filters')
 
 
 var handler = (function () {
@@ -42070,11 +42113,15 @@ var handler = (function () {
   var returnFare = 0
   var ongoingFlightLinks
   var returnFlightLinks
+  var filterShowBtn
+  var filterSection
+  var displaySection
 
   var handlerListeners = {
     'fetchDataSuccess': displayFlights,
     'sortOngoing': displayOngoingFlights,
-    'sortReturn': displayReturnFlights
+    'sortReturn': displayReturnFlights,
+    'fetchFilterSuccess': displayFilters
   }
 
   function init () {
@@ -42090,6 +42137,9 @@ var handler = (function () {
     ongoingSortLinks = $('.sort-trip1')
     returnSortLinks = $('.sort-trip2')
     totalPriceSection = $('#totalfare')
+    filterShowBtn = $('#filter-show')
+    filterSection = $('#filter')
+    displaySection = $('#display')
   }
 
 
@@ -42106,6 +42156,20 @@ var handler = (function () {
     returnSortLinks.on('click', {type: 'sortReturn', links: returnSortLinks} , handleSort)
     ongoingFlightContainer.on('click', 'li', {type: 'ongoing'}, handleFlightSelection)
     returnFlightContainer.on('click', 'li', {type: 'return'}, handleFlightSelection)
+    filterShowBtn.on('click', handleFilterShow)
+    filterSection.on('click', '#applyFilter', handleFilterApply)
+  }
+
+  function handleFilterShow () {
+    filterSection.removeClass('hide')
+    displaySection.addClass('hide')
+  }
+
+  function handleFilterApply () {
+    filterSection.addClass('hide')
+    displaySection.removeClass('hide')
+    var appliedFilters = filters.getFilters(filterSection)
+    actions.filterData(appliedFilters)
   }
 
   function handleSort (event) {
@@ -42143,6 +42207,10 @@ var handler = (function () {
   function displayFlights (data) {
     displayOngoingFlights(data.ongoing)
     displayReturnFlights(data.return)
+  }
+
+  function displayFilters (data) {
+    filters.displayFilters(data, templates.filters, filterSection)
   }
 
   function displayOngoingFlights (data) {
@@ -42184,11 +42252,12 @@ var handler = (function () {
 
 })()
 module.exports = handler
-},{"./actions":104,"./formatter":105,"./store":107,"./templates/templates":109,"handlebars":38,"jquery":50,"lodash":51}],107:[function(require,module,exports){
+},{"./actions":104,"./filters":105,"./formatter":106,"./store":108,"./templates/templates":111,"handlebars":38,"jquery":50,"lodash":51}],108:[function(require,module,exports){
 var Reflux = require('reflux')
 var $ = require('jquery')
 var _ = require('lodash')
 var actions = require('./actions')
+var filterUtility = require('./filters')
 
 var Store = Reflux.createStore({
   init: function () {
@@ -42214,6 +42283,7 @@ var Store = Reflux.createStore({
     $.getJSON('data.json').done(function (data) {
       this.setData(data)
       this.trigger({ data: data, type: 'fetchDataSuccess'})
+      this.trigger({data: data.filters, type: 'fetchFilterSuccess'})
     }.bind(this))
   },
 
@@ -42222,11 +42292,43 @@ var Store = Reflux.createStore({
 
     var sortedData = _.sortBy(data, field)
     this.trigger({ data: sortedData, type: type})
+  },
+
+  onFilterData: function (filters) {
+    var ongoingFlights = filterUtility.filter(this.data.ongoing, filters)
+    var returnFlights = filterUtility.filter(this.data.return, filters)
+    this.trigger(
+        {
+          data: {
+            ongoing: ongoingFlights,
+            return: returnFlights
+          },
+          type: 'fetchDataSuccess'
+        }
+    )
   }
 })
 
 module.exports = Store
-},{"./actions":104,"jquery":50,"lodash":51,"reflux":101}],108:[function(require,module,exports){
+},{"./actions":104,"./filters":105,"jquery":50,"lodash":51,"reflux":101}],109:[function(require,module,exports){
+var template = '<div class="settingsArea">\
+  {{#each filters}}\
+    <legend>{{displayName}}</legend>\
+    <fieldset class="filter ">\
+      {{#each values}}\
+        <label for="{{value}}">\
+          <input id="{{value}}" type="checkbox" class="filterInput" value="{{value}}" name="{{../name}}">\
+          <span class="airlogo"></span>\
+          <span>{{displayName}}</span>\
+        </label>\
+      {{/each}}\
+    </fieldset>\
+  {{/each}}\
+</div>\
+<p class="action"><button type="button" id="applyFilter" >Filter flights</button></p>'
+
+module.exports = template
+},{}],110:[function(require,module,exports){
 var template = '{{#each flights }}<li data-cost="{{cost}}"" data-name = "{{flightName}}"> \
   <div class="flight-icons {{airLineName}}"> \
   </div> \
@@ -42240,18 +42342,19 @@ var template = '{{#each flights }}<li data-cost="{{cost}}"" data-name = "{{fligh
 </li>{{/each}}'
 
 module.exports = template
-},{}],109:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 var Handlebars = require('handlebars')
 var templates = {
 
-  flights: Handlebars.compile(require('./flights'))
+  flights: Handlebars.compile(require('./flights')),
+  filters: Handlebars.compile(require('./filters'))
 }
 
 module.exports = templates
-},{"./flights":108,"handlebars":38}],110:[function(require,module,exports){
+},{"./filters":109,"./flights":110,"handlebars":38}],112:[function(require,module,exports){
 var handler = require('./feature/handler')
 var $ = require('jquery')
 $(document).ready(function(){
   handler.init()
 })
-},{"./feature/handler":106,"jquery":50}]},{},[110]);
+},{"./feature/handler":107,"jquery":50}]},{},[112]);

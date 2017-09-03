@@ -5,6 +5,7 @@ var store = require('./store')
 var Handlebars = require('handlebars')
 var templates = require('./templates/templates')
 var formatters = require('./formatter')
+var filters = require('./filters')
 
 
 var handler = (function () {
@@ -17,11 +18,15 @@ var handler = (function () {
   var returnFare = 0
   var ongoingFlightLinks
   var returnFlightLinks
+  var filterShowBtn
+  var filterSection
+  var displaySection
 
   var handlerListeners = {
     'fetchDataSuccess': displayFlights,
     'sortOngoing': displayOngoingFlights,
-    'sortReturn': displayReturnFlights
+    'sortReturn': displayReturnFlights,
+    'fetchFilterSuccess': displayFilters
   }
 
   function init () {
@@ -37,6 +42,9 @@ var handler = (function () {
     ongoingSortLinks = $('.sort-trip1')
     returnSortLinks = $('.sort-trip2')
     totalPriceSection = $('#totalfare')
+    filterShowBtn = $('#filter-show')
+    filterSection = $('#filter')
+    displaySection = $('#display')
   }
 
 
@@ -53,6 +61,20 @@ var handler = (function () {
     returnSortLinks.on('click', {type: 'sortReturn', links: returnSortLinks} , handleSort)
     ongoingFlightContainer.on('click', 'li', {type: 'ongoing'}, handleFlightSelection)
     returnFlightContainer.on('click', 'li', {type: 'return'}, handleFlightSelection)
+    filterShowBtn.on('click', handleFilterShow)
+    filterSection.on('click', '#applyFilter', handleFilterApply)
+  }
+
+  function handleFilterShow () {
+    filterSection.removeClass('hide')
+    displaySection.addClass('hide')
+  }
+
+  function handleFilterApply () {
+    filterSection.addClass('hide')
+    displaySection.removeClass('hide')
+    var appliedFilters = filters.getFilters(filterSection)
+    actions.filterData(appliedFilters)
   }
 
   function handleSort (event) {
@@ -90,6 +112,10 @@ var handler = (function () {
   function displayFlights (data) {
     displayOngoingFlights(data.ongoing)
     displayReturnFlights(data.return)
+  }
+
+  function displayFilters (data) {
+    filters.displayFilters(data, templates.filters, filterSection)
   }
 
   function displayOngoingFlights (data) {
