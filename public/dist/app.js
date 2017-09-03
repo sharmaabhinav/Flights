@@ -42265,10 +42265,19 @@ var Store = Reflux.createStore({
     this.data = {ongoing: [], return: []}
     this.ongoingSelection = ''
     this.returnSelection = ''
+    this.filters = {}
   },
 
   onOngoingSelection: function (selection) {
     this.ongoingSelection = selection
+  },
+
+  setFilters: function (filters) {
+    this.filters = filters
+  },
+
+  getFilters: function () {
+    return this.filters
   },
 
   onReturnSelection: function (selection) {
@@ -42290,11 +42299,12 @@ var Store = Reflux.createStore({
   onSortData: function (field, type) {
     var data = type === 'sortOngoing' ? this.data['ongoing'] : this.data['return']
 
-    var sortedData = _.sortBy(data, field)
-    this.trigger({ data: sortedData, type: type})
+    data = filterUtility.filter(_.sortBy(data, field), this.getFilters())
+    this.trigger({ data: data, type: type})
   },
 
   onFilterData: function (filters) {
+    this.setFilters(filters)
     var ongoingFlights = filterUtility.filter(this.data.ongoing, filters)
     var returnFlights = filterUtility.filter(this.data.return, filters)
     this.trigger(
