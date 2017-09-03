@@ -6,6 +6,7 @@ var Handlebars = require('handlebars')
 var templates = require('./templates/templates')
 var formatters = require('./formatter')
 var filters = require('./filters')
+var utils = require('./utils')
 
 
 var handler = (function () {
@@ -73,8 +74,12 @@ var handler = (function () {
   function handleFilterApply () {
     filterSection.addClass('hide')
     displaySection.removeClass('hide')
+
     var appliedFilters = filters.get(filterSection)
     actions.filterData(appliedFilters)
+
+    resetOngoingSelection()
+    resetReturnFlightSelection()
   }
 
   function handleSort (event) {
@@ -86,11 +91,30 @@ var handler = (function () {
 
     var sortBy = elem.data('sort')
     actions.sortData(sortBy, params.type)
+
+    if (params.type === 'sortOngoing') {
+      resetOngoingSelection()
+    } else {
+      resetReturnFlightSelection()
+    }
+  }
+
+  function resetOngoingSelection (){
+    actions.ongoingSelection('')
+    ongoingFare = 0
+    updateTotalPrice(ongoingFare, returnFare)
+  }
+
+  function resetReturnFlightSelection () {
+    actions.returnSelection('')
+    returnFare = 0
+    updateTotalPrice(ongoingFare, returnFare)
   }
 
   function handleFlightSelection (event) {
     var params = event.data
     var elem = $(this)
+    elem.addClass('selected')
     if (params.type === 'ongoing') {
       ongoingFlightLinks.removeClass('selected')
       ongoingFare = elem.data('cost')
@@ -100,13 +124,13 @@ var handler = (function () {
       actions.returnSelection(elem.data('name'))
       returnFare = elem.data('cost')
     }
-    elem.addClass('selected')
     updateTotalPrice(ongoingFare, returnFare)
   }
 
   function updateTotalPrice (ongoingFare, returnFare) {
-    var displayFare = formatters.cost(ongoingFare + returnFare)
-    $('#totalfare').html(displayFare)
+    var newFare = ongoingFare + returnFare
+    var oldFare = parseInt(totalPriceSection.html())
+    utils.cashRegisterEffect(oldFare, newFare, totalPriceSection)
   }
 
   function displayFlights (data) {
