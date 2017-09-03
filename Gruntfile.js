@@ -140,7 +140,7 @@ module.exports = function(grunt){
         'watch'
     ]);
 
-    grunt.registerTask('build', ['uglify'])
+    grunt.registerTask('build', ['browserify','uglify'])
 
     grunt.loadNpmTasks('grunt-browserify')
     grunt.loadNpmTasks('grunt-contrib-uglify')

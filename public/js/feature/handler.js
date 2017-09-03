@@ -114,7 +114,7 @@ var handler = (function () {
   function handleFlightSelection (event) {
     var params = event.data
     var elem = $(this)
-    elem.addClass('selected')
+
     if (params.type === 'ongoing') {
       ongoingFlightLinks.removeClass('selected')
       ongoingFare = elem.data('cost')
@@ -124,6 +124,7 @@ var handler = (function () {
       actions.returnSelection(elem.data('name'))
       returnFare = elem.data('cost')
     }
+    elem.addClass('selected')
     updateTotalPrice(ongoingFare, returnFare)
   }
 
